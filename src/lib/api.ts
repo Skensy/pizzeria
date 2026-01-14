@@ -3,12 +3,17 @@ import { MenuItem, ContactInfo, StrapiResponse, StrapiMenuItem, StrapiContactInf
 import { MENU_ITEMS, CONTACT_INFO } from '../constants';
 
 const API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+const IS_GITHUB_PAGES = process.env.GITHUB_PAGES === 'true';
 
 /**
  * Helper to fetch data from Strapi
  */
-async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
+async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}): Promise<T | null> {
   try {
+    if (IS_GITHUB_PAGES) {
+      return null;
+    }
+
     // Merge default and user options
     const mergedOptions = {
       headers: {
@@ -26,7 +31,13 @@ async function fetchAPI<T>(path: string, urlParamsObject = {}, options = {}) {
     // Check if query string is not empty before appending
     const requestUrl = `${API_URL}/api${path}${queryString ? `?${queryString}` : ''}`;
 
-    const response = await fetch(requestUrl, mergedOptions);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const response = await fetch(requestUrl, {
+      ...mergedOptions,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.warn(`Strapi API Fetch failed: ${response.status} ${response.statusText}`);
