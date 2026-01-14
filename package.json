@@ -6,6 +6,7 @@
     "dev": "next dev",
     "dev:all": "concurrently \"npm run dev\" \"npm run strapi\" --names \"NEXT,STRAPI\" --prefix-colors \"blue,magenta\"",
     "build": "next build",
+    "export": "next build",
     "start": "next start",
     "strapi": "cd backend && npm run develop",
     "lint": "eslint"
